@@ -72,7 +72,12 @@
                     asp-fallback-test="window.Hammer && window.Hammer.Instance">
             </script>
             <script src="~/js/site.js" asp-file-version="true"></script>
-        </environment>
+        </environment>    
+    
+        <script src="~/jspm_packages/system.js"></script>
+        <script src="~/config.js"></script>
+        
+        <script>System.import('aurelia-bootstrapper');</script>
 
         @RenderSection("scripts", required: false)
     </body>
