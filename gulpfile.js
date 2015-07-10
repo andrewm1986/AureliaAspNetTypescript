@@ -85,8 +85,10 @@ gulp.task('scss', function() {
         .pipe(gulp.dest(config.scssOutputPath));
 });
 
+gulp.task('run', ['ts-lint', 'compile-ts', 'gen-ts-refs', 'scss']);
+
 gulp.task('watch', function() {
-    gulp.watch([config.allTypeScript], ['ts-lint', 'compile-ts', 'gen-ts-refs']);
+    gulp.watch([config.allTypeScript, config.allScss], ['run']);
 });
 
-gulp.task('default', ['ts-lint', 'compile-ts', 'gen-ts-refs', 'watch']);
+gulp.task('default', ['run',  'watch']);
