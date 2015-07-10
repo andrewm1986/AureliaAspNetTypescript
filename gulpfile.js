@@ -8,6 +8,7 @@ var gulp = require("gulp"),
   debug = require('gulp-debug'),
   inject = require('gulp-inject'),
   print = require('gulp-print'),
+  nodemon = require('gulp-nodemon'),
   tsc = require('gulp-typescript'),
   tslint = require('gulp-tslint'),
   sourcemaps = require('gulp-sourcemaps'),
@@ -85,10 +86,16 @@ gulp.task('scss', function() {
         .pipe(gulp.dest(config.scssOutputPath));
 });
 
-gulp.task('run', ['ts-lint', 'compile-ts', 'gen-ts-refs', 'scss']);
+gulp.task('dnx-run', 
+    function () {
+      nodemon({
+        exec: 'dnx . kestrel',
+        ext: 'ts js json css scss html cshtml cs',
+        tasks: ['generate']
+      })
+    }    
+);
 
-gulp.task('watch', function() {
-    gulp.watch([config.allTypeScript, config.allScss], ['run']);
-});
+gulp.task('generate', ['ts-lint', 'compile-ts', 'gen-ts-refs', 'scss']);
 
-gulp.task('default', ['run',  'watch']);
+gulp.task('default', ['generate', 'dnx-run']);

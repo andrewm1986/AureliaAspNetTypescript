@@ -10,24 +10,6 @@ body {
     padding-right: 15px;
 }
 
-/* Set widths on the form inputs since otherwise they're 100% wide */
-input,
-select,
-textarea {
-    max-width: 280px;
-}
-
-/* Carousel */
-.carousel-caption {
-    z-index: 10 !important;
-    p {
-        font-size: 20px;
-        line-height: 1.4;
-    }
-}
-
-@media (min-width: 768px) {
-    .carousel-caption {
-        z-index: 10 !important;
-    }
+div[aurelia-app] {
+    background-color: blue;
 }
