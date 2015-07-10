@@ -5,43 +5,78 @@ var gulp = require("gulp"),
   concat = require("gulp-concat"),
   cssmin = require("gulp-cssmin"),
   uglify = require("gulp-uglify"),
+  debug = require('gulp-debug'),
+  inject = require('gulp-inject'),
+  tsc = require('gulp-typescript'),
+  tslint = require('gulp-tslint'),
+  sourcemaps = require('gulp-sourcemaps'),
+  del = require('del'),
+  Config = require('./gulpfile.config'),
   project = require("./project.json");
 
-var paths = {
-  webroot: "./" + project.webroot + "/"
-};
+var config = new Config();
 
-paths.js = paths.webroot + "js/**/*.js";
-paths.minJs = paths.webroot + "js/**/*.min.js";
-paths.css = paths.webroot + "css/**/*.css";
-paths.minCss = paths.webroot + "css/**/*.min.css";
-paths.concatJsDest = paths.webroot + "js/site.min.js";
-paths.concatCssDest = paths.webroot + "css/site.min.css";
-
-gulp.task("clean:js", function(cb) {
-  rimraf(paths.concatJsDest, cb);
+/**
+ * Generates the app.d.ts references file dynamically from all application *.ts files.
+ */
+gulp.task('gen-ts-refs', function () {
+    var target = gulp.src(config.appTypeScriptReferences);
+    var sources = gulp.src([config.allTypeScript], {read: false});
+    return target.pipe(inject(sources, {
+        starttag: '//{',
+        endtag: '//}',
+        transform: function (filepath) {
+            return '/// <reference path="../..' + filepath + '" />';
+        }
+    })).pipe(gulp.dest(config.typings));
 });
 
-gulp.task("clean:css", function(cb) {
-  rimraf(paths.concatCssDest, cb);
+/**
+ * Lint all custom TypeScript files.
+ */
+gulp.task('ts-lint', function () {
+    return gulp.src(config.allTypeScript).pipe(tslint()).pipe(tslint.report('prose'));
 });
 
-gulp.task("clean", ["clean:js", "clean:css"]);
 
-gulp.task("min:js", function() {
-  gulp.src([paths.js, "!" + paths.minJs], {
-      base: "."
-    })
-    .pipe(concat(paths.concatJsDest))
-    .pipe(uglify())
-    .pipe(gulp.dest("."));
+/**
+ * Compile TypeScript and include references to library and app .d.ts files.
+ */
+gulp.task('compile-ts', function () {
+    var sourceTsFiles = [config.allTypeScript,                //path to typescript files
+                         config.libraryTypeScriptDefinitions, //reference to library .d.ts files
+                         config.appTypeScriptReferences];     //reference to app.d.ts files
+
+    var tsResult = gulp.src(sourceTsFiles)
+                       .pipe(sourcemaps.init())
+                       .pipe(tsc({
+                           target: 'ES5', // ES6,
+                           declarationFiles: false,
+                           noExternalResolve: true
+                       }));
+
+        tsResult.dts.pipe(gulp.dest(config.tsOutputPath));
+        return tsResult.js
+                        .pipe(sourcemaps.write('.'))
+                        .pipe(gulp.dest(config.tsOutputPath));
 });
 
-gulp.task("min:css", function() {
-  gulp.src([paths.css, "!" + paths.minCss])
-    .pipe(concat(paths.concatCssDest))
-    .pipe(cssmin())
-    .pipe(gulp.dest("."));
+
+/**
+ * Remove all generated JavaScript files from TypeScript compilation.
+ */
+gulp.task('clean-ts', function (cb) {
+  var typeScriptGenFiles = [config.tsOutputPath,            // path to generated JS files
+                            config.sourceFiles +'**/*.js',    // path to all JS files auto gen'd by editor
+                            config.sourceFiles +'**/*.js.map' // path to all sourcemap files auto gen'd by editor
+                           ];
+
+  // delete the files
+  del(typeScriptGenFiles, cb);
 });
 
-gulp.task("min", ["min:js", "min:css"]);
+gulp.task('watch', function() {
+    gulp.watch([config.allTypeScript], ['ts-lint', 'compile-ts', 'gen-ts-refs']);
+});
+
+gulp.task('default', ['ts-lint', 'compile-ts', 'gen-ts-refs', 'watch']);
