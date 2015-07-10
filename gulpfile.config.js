@@ -3,12 +3,18 @@ var GulpConfig = (function () {
     function GulpConfig() {
 
         this.sourceRoot = './';
-        this.sourceFiles = this.sourceRoot + 'StaticContent/js';
+        this.sourceTsFiles = this.sourceRoot + 'StaticContent/js';
+        this.sourceScssFiles = this.sourceRoot + 'StaticContent/css';
 
         this.rootOutputPath = this.sourceRoot + 'wwwroot';
+        
         this.tsOutputPath = this.rootOutputPath + '/js';
-        this.allJavaScript = [this.sourceFiles + '/**/*.js'];
-        this.allTypeScript = this.sourceFiles + '/**/*.ts';
+        this.allJavaScript = [this.sourceTsFiles + '/**/*.js'];
+        this.allTypeScript = this.sourceTsFiles + '/**/*.ts';
+        
+        this.scssOutputPath = this.rootOutputPath + '/css';
+        this.allScss = this.sourceScssFiles + '/**/*.scss';
+        
 
         this.typings = './tools/typings/';
         this.libraryTypeScriptDefinitions = './tools/typings/**/*.ts';

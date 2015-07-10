@@ -20,12 +20,11 @@ textarea {
 /* Carousel */
 .carousel-caption {
     z-index: 10 !important;
-}
-
-    .carousel-caption p {
+    p {
         font-size: 20px;
         line-height: 1.4;
     }
+}
 
 @media (min-width: 768px) {
     .carousel-caption {
